@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentiment Analysis Tokopedia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+      /* ─── BASE ─── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        font-size: 14px;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5efe6;
+        color: #2c2416;
+        line-height: 1.5;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      /* ─── HEADER ─── */
+      .header {
+        background: #ffffff;
+        border-bottom: 2px solid #d6c9b0;
+        padding: 14px 32px;
+      }
+      .header-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #1a1008;
+        letter-spacing: 0.2px;
+      }
+      .header-sub {
+        font-size: 11px;
+        color: #8a7a60;
+        margin-top: 2px;
+      }
+
+      /* ─── NAVBAR ─── */
+      .navbar {
+        background: #ffffff;
+        border-bottom: 1px solid #d6c9b0;
+        display: flex;
+        padding: 0 32px;
+        overflow-x: auto;
+      }
+      .nav-btn {
+        padding: 11px 18px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        color: #7a6a50;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+        font-weight: 500;
+        transition: color 0.15s;
+      }
+      .nav-btn:hover {
+        color: #3a2a10;
+        background: #faf5ec;
+      }
+      .nav-btn.active {
+        color: #5c3d0a;
+        border-bottom-color: #8c6020;
+        font-weight: 700;
+      }
+
+      /* ─── CONTAINER ─── */
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 22px 20px;
+      }
+
+      /* ─── STATS ROW ─── */
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .stat-card {
+        background: #ffffff;
+        border: 1px solid #d6c9b0;
+        border-top: 3px solid var(--bdr, #c8b090);
+        border-radius: 6px;
+        padding: 12px 10px;
+        text-align: center;
+      }
+      .stat-card .val {
+        font-size: 19px;
+        font-weight: 800;
+        color: var(--bdr, #5c3d0a);
+      }
+      .stat-card .lbl {
+        font-size: 10px;
+        color: #9a8870;
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* ─── STATUS ─── */
+      .status-row {
+        background: #ffffff;
+        border: 1px solid #d6c9b0;
+        border-radius: 6px;
+        padding: 9px 18px;
+        margin-bottom: 16px;
+        display: flex;
+        gap: 20px;
+        font-size: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .status-lbl {
+        color: #8a7a60;
+        font-weight: 600;
+      }
+      .status-ok {
+        color: #4a7a2a;
+        font-weight: 600;
+      }
+      .status-warn {
+        color: #b85a0a;
+        font-weight: 600;
+      }
+
+      /* ─── PAGE ─── */
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+      }
+
+      /* ─── PANEL ─── */
+      .panel {
+        background: #ffffff;
+        border: 1px solid #d6c9b0;
+        border-radius: 6px;
+        padding: 18px 22px;
+        margin-bottom: 14px;
+      }
+      .panel-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #3a2810;
+        margin-bottom: 14px;
+        padding-bottom: 9px;
+        border-bottom: 1px solid #e8e0d0;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+      .panel-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      /* ─── FORM ─── */
+      .form-label {
+        font-size: 12px;
+        color: #6a5a40;
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+      }
+      textarea,
+      input[type="text"] {
+        width: 100%;
+        border: 1px solid #c8b890;
+        border-radius: 5px;
+        padding: 9px 12px;
+        font-size: 13px;
+        font-family: inherit;
+        background: #fdfaf4;
+        color: #2c2416;
+        resize: vertical;
+      }
+      textarea {
+        min-height: 75px;
+      }
+      textarea:focus,
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #8c6020;
+      }
+      .btn-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 8px 20px;
+        border-radius: 5px;
+        border: 1px solid #c8b890;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+        font-weight: 600;
+      }
+      .btn-main {
+        background: #6a4010;
+        color: #fff;
+        border-color: #6a4010;
+      }
+      .btn-main:hover {
+        background: #4a2c08;
+      }
+      .btn-plain {
+        background: #f0e8d8;
+        color: #5a4a30;
+      }
+      .btn-plain:hover {
+        background: #e4d8c4;
+      }
+
+      /* ─── HASIL ANALISIS ─── */
+      .hasil-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .hasil-card {
+        background: #fdfaf4;
+        border: 1px solid #d0c0a0;
+        border-left: 4px solid var(--acc, #c8b090);
+        border-radius: 5px;
+        padding: 12px 14px;
+      }
+      .hc-nama {
+        font-size: 10px;
+        color: #8a7a60;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+      }
+      .hc-label {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 3px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        margin-bottom: 5px;
+      }
+      .lbl-p {
+        background: #e8f4e0;
+        color: #2e6a1a;
+      }
+      .lbl-n {
+        background: #fce8e8;
+        color: #8a1a1a;
+      }
+      .lbl-t {
+        background: #fdf4e0;
+        color: #8a5a0a;
+      }
+      .lbl-x {
+        background: #f0ece4;
+        color: #8a7a60;
+      }
+      .hc-skor {
+        font-size: 11px;
+        color: #9a8870;
+        line-height: 1.6;
+      }
+
+      .maj-box {
+        background: #fdfaf4;
+        border: 1px solid #d0c0a0;
+        border-radius: 5px;
+        padding: 12px 18px;
+        margin-top: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .maj-lbl {
+        font-size: 11px;
+        color: #8a7a60;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .maj-val {
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .maj-dur {
+        text-align: right;
+      }
+      .maj-dur .maj-lbl {
+        text-align: right;
+      }
+      .maj-dur-val {
+        font-size: 15px;
+        font-weight: 700;
+        color: #4a3820;
+      }
+
+      /* ─── LOADER ─── */
+      .loader {
+        display: none;
+        padding: 10px 0;
+      }
+      .loader-bar {
+        height: 3px;
+        background: #e8dcc8;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 7px;
+      }
+      .loader-inner {
+        height: 100%;
+        width: 30%;
+        background: #8c6020;
+        border-radius: 2px;
+        animation: ldanim 1.2s ease-in-out infinite;
+      }
+      @keyframes ldanim {
+        0% {
+          margin-left: -30%;
+        }
+        100% {
+          margin-left: 100%;
+        }
+      }
+      .loader-txt {
+        font-size: 12px;
+        color: #9a8870;
+      }
+
+      /* ─── TABEL ─── */
+      .tbl-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      thead th {
+        background: #f0e8d8;
+        color: #3a2810;
+        padding: 8px 11px;
+        text-align: left;
+        font-weight: 700;
+        border-bottom: 2px solid #d0c0a0;
+        white-space: nowrap;
+      }
+      tbody td {
+        padding: 7px 11px;
+        border-bottom: 1px solid #ede4d4;
+        color: #3a2810;
+      }
+      tbody tr:hover td {
+        background: #faf5ec;
+      }
+      td.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      /* ─── CHART ─── */
+      .chart-h260 {
+        height: 260px;
+        position: relative;
+      }
+      .chart-h300 {
+        height: 300px;
+        position: relative;
+      }
+      .chart-h320 {
+        height: 320px;
+        position: relative;
+      }
+
+      /* ─── CONTOH BUTTON ─── */
+      .contoh-btn {
+        font-size: 11px;
+        background: #f0e8d8;
+        border: 1px solid #d0c0a0;
+        color: #6a5a40;
+        border-radius: 4px;
+        padding: 5px 11px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .contoh-btn:hover {
+        background: #e4d8c4;
+        color: #3a2810;
+      }
+
+      /* ─── BATCH SCROLL ─── */
+      .batch-scroll {
+        max-height: 340px;
+        overflow-y: auto;
+        margin-top: 12px;
+      }
+      .batch-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .batch-scroll::-webkit-scrollbar-track {
+        background: #f5efe6;
+      }
+      .batch-scroll::-webkit-scrollbar-thumb {
+        background: #c8b090;
+        border-radius: 3px;
+      }
+
+      /* ─── RANK CARD ─── */
+      .rank-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .rank-card {
+        background: #fdfaf4;
+        border: 1px solid #d0c0a0;
+        border-top: 4px solid var(--rc, #c8b090);
+        border-radius: 6px;
+        padding: 14px 16px;
+        text-align: center;
+      }
+      .rank-no {
+        font-size: 22px;
+        margin-bottom: 4px;
+        color: var(--rc, #8a7060);
+      }
+      .rank-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--rc, #4a3820);
+        margin-bottom: 6px;
+      }
+      .rank-acc {
+        font-size: 22px;
+        font-weight: 900;
+        color: var(--rc, #4a3820);
+      }
+      .rank-lbl {
+        font-size: 10px;
+        color: #9a8870;
+      }
+      .rank-ket {
+        font-size: 10px;
+        color: #7a6a50;
+        margin-top: 6px;
+      }
+
+      /* ─── RESPONSIVE ─── */
+      @media (max-width: 780px) {
+        .stats-row {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .hasil-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .panel-grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .rank-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .hasil-grid {
+          grid-template-columns: 1fr;
+        }
+        .stats-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-title">Sentiment Analysis Ulasan Produk Tokopedia</div>
+      <div class="header-sub">Big Data Topik 3</div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <button class="nav-btn active" onclick="showPage('analisis', this)">Analisis Real-time</button>
+      <button class="nav-btn" onclick="showPage('batch', this)">Batch Analysis</button>
+      <button class="nav-btn" onclick="showPage('evaluasi', this)">Evaluasi Model</button>
+      <button class="nav-btn" onclick="showPage('visualisasi', this)">Visualisasi Data</button>
+      <button class="nav-btn" onclick="showPage('waktu', this)">Processing Time</button>
+      <button class="nav-btn" onclick="showPage('data', this)">Data Sampel</button>
+    </nav>
+
+    <!-- WRAP -->
+    <div class="wrap">
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card" style="--bdr: #3a6a9a">
+          <div class="val">{{ stats.get('total',0)|int }}</div>
+          <div class="lbl">Total Ulasan</div>
+        </div>
+        <div class="stat-card" style="--bdr: #2e7a2a">
+          <div class="val">{{ stats.get('positif',0)|int }}</div>
+          <div class="lbl">Positif</div>
+        </div>
+        <div class="stat-card" style="--bdr: #8a2020">
+          <div class="val">{{ stats.get('negatif',0)|int }}</div>
+          <div class="lbl">Negatif</div>
+        </div>
+        <div class="stat-card" style="--bdr: #8a6010">
+          <div class="val">{{ stats.get('netral',0)|int }}</div>
+          <div class="lbl">Netral</div>
+        </div>
+        <div class="stat-card" style="--bdr: #6a3a8a">
+          <div class="val">{{ stats.get('kategori',0)|int }}</div>
+          <div class="lbl">Kategori</div>
+        </div>
+        <div class="stat-card" style="--bdr: #7a4a10">
+          <div class="val">{{ stats.get('produk',0)|int }}</div>
+          <div class="lbl">Produk</div>
+        </div>
+      </div>
+
+      <!-- STATUS -->
+      <div class="status-row">
+        <span class="status-lbl">Status Model :</span>
+        <span class="{{ 'status-ok' if svm_ok else 'status-warn' }}">SVM : {{ 'Siap' if svm_ok else 'Belum' }}</span>
+        <span class="{{ 'status-ok' if rf_ok  else 'status-warn' }}">Random Forest : {{ 'Siap' if rf_ok else 'Belum' }}</span>
+        <span class="{{ 'status-ok' if spark_ok else 'status-warn' }}">Spark MLlib : {{ 'Siap' if spark_ok else 'Belum — jalankan sparkmllib.py lalu buat spark_pipeline.pkl' }}</span>
+      </div>
+
+      <!-- ════ HALAMAN ANALISIS ════ -->
+      <div id="page-analisis" class="page active">
+        <div class="panel">
+          <div class="panel-title">Analisis Sentimen Real-time — Semua Metode</div>
+          <label class="form-label">Teks ulasan produk Tokopedia :</label>
+          <textarea id="inp-teks" placeholder="Contoh: Produk sangat bagus, pengiriman cepat dan packaging sangat rapi"></textarea>
+          <div class="btn-row">
+            <button class="btn btn-main" onclick="doAnalisis()">Analisis Semua Metode</button>
+            <button class="btn btn-plain" onclick="clearAnalisis()">Hapus</button>
+          </div>
+          <div class="loader" id="ld-anal">
+            <div class="loader-bar"><div class="loader-inner"></div></div>
+            <div class="loader-txt">Sedang menganalisis dengan semua metode...</div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-hasil" style="display: none">
+          <div class="panel-title">Hasil Analisis</div>
+          <div class="hasil-grid" id="grid-hasil"></div>
+          <div class="maj-box">
+            <div>
+              <div class="maj-lbl">Kesimpulan Mayoritas (Voting)</div>
+              <div class="maj-val" id="maj-val"></div>
+            </div>
+            <div class="maj-dur">
+              <div class="maj-lbl">Processing Time</div>
+              <div class="maj-dur-val" id="dur-val"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Contoh Ulasan Cepat</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 7px">
+            {% for t in [ "Produk sangat bagus, pengiriman cepat dan packaging sangat rapi", "Barang tidak sesuai foto, sangat kecewa dengan penjual ini", "Standar saja, tidak ada yang spesial dari produk ini", "Seller fast response, produk
+            original, sangat recommended", "Barang rusak saat sampai, minta refund tidak direspons penjual", "Kualitas sesuai harga, worth it banget buat sehari-hari" ] %}
+            <button class="contoh-btn" onclick="setContoh('{{t}}')">{{t[:44]}}...</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- /page-analisis -->
+
+      <!-- ════ HALAMAN BATCH ════ -->
+      <div id="page-batch" class="page">
+        <div class="panel">
+          <div class="panel-title">Batch Analysis — Analisis Banyak Ulasan Sekaligus</div>
+          <label class="form-label">Masukkan ulasan (satu baris per ulasan, maksimal 200) :</label>
+          <textarea id="inp-batch" style="min-height: 120px" placeholder="Produk bagus, cepat sampai&#10;Kecewa, barang rusak saat tiba&#10;Lumayan, standar saja tidak ada yang spesial"></textarea>
+          <div class="btn-row">
+            <button class="btn btn-main" onclick="doBatch()">Analisis Batch</button>
+            <span id="batch-info" style="font-size: 12px; color: #8a7a60; line-height: 34px; margin-left: 4px"></span>
+          </div>
+          <div class="loader" id="ld-batch">
+            <div class="loader-bar"><div class="loader-inner"></div></div>
+            <div class="loader-txt">Memproses batch...</div>
+          </div>
+          <div class="batch-scroll" id="batch-hasil"></div>
+        </div>
+      </div>
+
+      <!-- ════ HALAMAN EVALUASI ════ -->
+      <div id="page-evaluasi" class="page">
+        <div id="rank-container"></div>
+
+        <div class="panel">
+          <div class="panel-title">Tabel Perbandingan Performa Semua Metode</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Metode</th>
+                  <th>Accuracy (%)</th>
+                  <th>Precision (%)</th>
+                  <th>Recall (%)</th>
+                  <th>F1-Score (%)</th>
+                  <th>Waktu (s)</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-eval">
+                <tr>
+                  <td colspan="8" style="text-align: center; color: #9a8870; padding: 16px">Memuat data evaluasi...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Grafik Perbandingan Metrik Evaluasi</div>
+          <div class="chart-h300"><canvas id="chart-eval"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ════ HALAMAN VISUALISASI ════ -->
+      <div id="page-visualisasi" class="page">
+        <div class="panel-grid-2">
+          <div class="panel">
+            <div class="panel-title">Distribusi Sentimen Keseluruhan</div>
+            <div class="chart-h260"><canvas id="chart-pie"></canvas></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Sentimen per Kategori Produk</div>
+            <div class="chart-h260"><canvas id="chart-kat"></canvas></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Tren Sentimen (Time-Series berdasarkan Waktu Ulasan)</div>
+          <div class="chart-h300"><canvas id="chart-ts"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Jumlah Ulasan per Kategori</div>
+          <div class="chart-h260"><canvas id="chart-jml-kat"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ════ HALAMAN PROCESSING TIME ════ -->
+      <div id="page-waktu" class="page">
+        <div class="panel">
+          <div class="panel-title">Processing Time Comparison — Semua Metode</div>
+          <div class="chart-h320"><canvas id="chart-waktu"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Detail Processing Time</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Metode</th>
+                  <th>Waktu (detik)</th>
+                  <th>Kategori</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-waktu">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: #9a8870; padding: 16px">Memuat...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ HALAMAN DATA ════ -->
+      <div id="page-data" class="page">
+        <div class="panel">
+          <div class="panel-title">Sampel Data Ulasan Tokopedia (50 baris acak)</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nama Produk</th>
+                  <th>Kategori</th>
+                  <th>Rating</th>
+                  <th>Ulasan</th>
+                  <th>Sentimen</th>
+                  <th>Waktu</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-data">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: #9a8870; padding: 16px">Memuat data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /wrap -->
+
+    <!-- ════════════════ JAVASCRIPT ════════════════ -->
+    <script>
+      // ── Helper label ──────────────────────────────────────────
+      function lblCls(l) {
+        if (l==='positif') return 'lbl-p';
+        if (l==='negatif') return 'lbl-n';
+        if (l==='netral')  return 'lbl-t';
+        return 'lbl-x';
+      }
+      function badge(l) {
+        return '<span class="badge ' + lblCls(l) + '">' + (l||'N/A') + '</span>';
+      }
+
+      // ── Warna grafik ──────────────────────────────────────────
+      const CLR = {
+        VADER        : '#5a8a3a',
+        TextBlob     : '#3a6a9a',
+        SVM          : '#7a3a9a',
+        Random_Forest: '#9a6a2a',
+        Spark_MLlib  : '#9a3a2a',
+        IndoBERT     : '#8a7a2a',
+      };
+      const CLR_ARR = ['#5a8a3a','#3a6a9a','#7a3a9a','#9a6a2a','#9a3a2a','#8a7a2a'];
+
+      const KET = {
+        VADER        : 'Leksikon Inggris — lemah di Bahasa Indonesia',
+        TextBlob     : 'Leksikon Inggris — lemah di Bahasa Indonesia',
+        SVM          : 'Terbaik non-DL, training sangat cepat',
+        Random_Forest: 'Stabil, ensemble 200 pohon keputusan',
+        Spark_MLlib  : 'Pipeline Big Data, scalable skala besar',
+        IndoBERT     : 'Deep learning, fine-tuned Bahasa Indonesia',
+      };
+
+      // ── Navigasi ──────────────────────────────────────────────
+      function showPage(name, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('page-'+name).classList.add('active');
+        btn.classList.add('active');
+        if (name==='evaluasi')    loadEval();
+        if (name==='visualisasi') loadVisual();
+        if (name==='waktu')       loadWaktu();
+        if (name==='data')        loadData();
+      }
+
+      // ── Analisis real-time ────────────────────────────────────
+      async function doAnalisis() {
+        const teks = document.getElementById('inp-teks').value.trim();
+        if (!teks) { alert('Masukkan teks ulasan terlebih dahulu.'); return; }
+        document.getElementById('ld-anal').style.display    = 'block';
+        document.getElementById('panel-hasil').style.display = 'none';
+        try {
+          const res = await fetch('/api/analisis', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({teks})
+          });
+          const d = await res.json();
+          if (d.error) { alert(d.error); return; }
+
+          // kartu per metode
+          const metode = [
+            { nama:'VADER (NLTK)',          label:d.vader.label,   skor:'Compound: '+d.vader.compound+' | Pos: '+d.vader.pos+' | Neg: '+d.vader.neg, acc:'#5a8a3a' },
+            { nama:'TextBlob',              label:d.textblob.label,skor:'Polarity: '+d.textblob.polarity+' | Subjectivity: '+d.textblob.subjectivity, acc:'#3a6a9a' },
+            { nama:'TF-IDF + SVM',          label:d.svm,           skor:'LinearSVC kernel linear', acc:'#7a3a9a' },
+            { nama:'TF-IDF + Random Forest',label:d.rf,            skor:'200 decision trees',       acc:'#9a6a2a' },
+            { nama:'Spark MLlib Pipeline',  label:d.spark,         skor:'Tokenizer > HashingTF > IDF > LR', acc:'#9a3a2a' },
+          ];
+          const grid = document.getElementById('grid-hasil');
+          grid.innerHTML = metode.map(m =>
+            '<div class="hasil-card" style="--acc:'+m.acc+'">' +
+            '<div class="hc-nama">'+m.nama+'</div>' +
+            '<div><span class="hc-label '+lblCls(m.label)+'">'+((m.label||'N/A').toUpperCase())+'</span></div>' +
+            '<div class="hc-skor">'+m.skor+'</div>' +
+            '</div>'
+          ).join('');
+
+          const majCls = lblCls(d.mayoritas);
+          document.getElementById('maj-val').innerHTML =
+            '<span class="hc-label '+majCls+'">'+((d.mayoritas||'-').toUpperCase())+'</span>';
+          document.getElementById('dur-val').textContent = d.durasi + ' detik';
+          document.getElementById('panel-hasil').style.display = 'block';
+        } catch(e) { alert('Error: '+e.message); }
+        finally { document.getElementById('ld-anal').style.display = 'none'; }
+      }
+      function setContoh(t) { document.getElementById('inp-teks').value = t; doAnalisis(); }
+      function clearAnalisis() {
+        document.getElementById('inp-teks').value = '';
+        document.getElementById('panel-hasil').style.display = 'none';
+      }
+
+      // ── Batch ─────────────────────────────────────────────────
+      async function doBatch() {
+        const inp = document.getElementById('inp-batch').value.trim();
+        if (!inp) { alert('Masukkan teks terlebih dahulu.'); return; }
+        const list = inp.split('\n').map(t=>t.trim()).filter(Boolean);
+        document.getElementById('ld-batch').style.display  = 'block';
+        document.getElementById('batch-info').textContent  = '';
+        document.getElementById('batch-hasil').innerHTML   = '';
+        try {
+          const res = await fetch('/api/batch',{method:'POST',
+            headers:{'Content-Type':'application/json'},body:JSON.stringify({teks_list:list})});
+          const d = await res.json();
+          const {positif,negatif,netral} = d.distribusi;
+          document.getElementById('batch-info').textContent =
+            d.total+' ulasan dianalisis | Positif: '+positif+' | Negatif: '+negatif+' | Netral: '+netral;
+          const rows = d.hasil.map((h,i)=>
+            '<tr><td>'+( i+1)+'</td>'+
+            '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+h.teks+'</td>'+
+            '<td>'+badge(h.vader)+'</td>'+
+            '<td>'+badge(h.textblob)+'</td>'+
+            '<td>'+badge(h.svm)+'</td>'+
+            '<td>'+badge(h.rf)+'</td>'+
+            '<td>'+badge(h.spark)+'</td>'+
+            '<td><strong>'+badge(h.hasil)+'</strong></td>'+
+            '</tr>'
+          ).join('');
+          document.getElementById('batch-hasil').innerHTML =
+            '<table><thead><tr><th>No</th><th>Teks Ulasan</th>'+
+            '<th>VADER</th><th>TextBlob</th><th>SVM</th><th>RF</th><th>Spark</th><th>Hasil</th>'+
+            '</tr></thead><tbody>'+rows+'</tbody></table>';
+        } catch(e){ alert('Error: '+e.message); }
+        finally { document.getElementById('ld-batch').style.display='none'; }
+      }
+
+      // ── Evaluasi ──────────────────────────────────────────────
+      let evalLoaded=false, chartEvalInst;
+      async function loadEval() {
+        if (evalLoaded) return; evalLoaded = true;
+        try {
+          const res = await fetch('/api/evaluasi');
+          const d   = await res.json();
+          const metode = Object.keys(d);
+
+          // Rank cards (top 3)
+          const sorted = [...metode].sort((a,b)=>(d[b].accuracy||0)-(d[a].accuracy||0));
+          const rcColors = ['#8a6010','#7a7a7a','#8a4a20'];
+          const rcLabel  = ['1','2','3'];
+          document.getElementById('rank-container').innerHTML =
+            '<div class="rank-grid">'+
+            sorted.slice(0,3).map((m,i)=>
+              '<div class="rank-card" style="--rc:'+rcColors[i]+'">' +
+              '<div class="rank-no">'+rcLabel[i]+'</div>'+
+              '<div class="rank-name">'+m.replace('_',' ')+'</div>'+
+              '<div class="rank-acc">'+(d[m].accuracy||0)+'%</div>'+
+              '<div class="rank-lbl">Accuracy</div>'+
+              '<div class="rank-ket">'+(KET[m]||'-')+'</div>'+
+              '</div>'
+            ).join('')+
+            '</div>';
+
+          // Tabel
+          const rows = metode.map((m,i)=>{
+            const v  = d[m];
+            const t  = v.waktu||v.waktu_train||'-';
+            const ac = v.accuracy||0;
+            const clr = ac>=70?'color:#2e6a1a;font-weight:700;':ac>=50?'color:#8a5a0a;':'color:#8a1a1a;';
+            return '<tr>'+
+              '<td>'+(i+1)+'</td>'+
+              '<td style="font-weight:700;color:'+(CLR_ARR[i]||'#4a3820')+'">'+m.replace('_',' ')+'</td>'+
+              '<td class="num" style="'+clr+'">'+(ac||'-')+'</td>'+
+              '<td class="num">'+(v.precision||'-')+'</td>'+
+              '<td class="num">'+(v.recall||'-')+'</td>'+
+              '<td class="num">'+(v.f1||'-')+'</td>'+
+              '<td class="num">'+t+'</td>'+
+              '<td style="font-size:11px;color:#8a7a60;">'+(KET[m]||'-')+'</td>'+
+              '</tr>';
+          }).join('');
+          document.getElementById('tbody-eval').innerHTML = rows;
+
+          // Chart
+          const ctx = document.getElementById('chart-eval').getContext('2d');
+          if (chartEvalInst) chartEvalInst.destroy();
+          chartEvalInst = new Chart(ctx, {
+            type:'bar',
+            data:{
+              labels:['Accuracy','Precision','Recall','F1-Score'],
+              datasets: metode.map((m,i)=>({
+                label: m.replace('_',' '),
+                data: [d[m].accuracy, d[m].precision, d[m].recall, d[m].f1],
+                backgroundColor: (CLR_ARR[i]||'#8a7060'),
+                borderRadius: 3,
+              }))
+            },
+            options:{
+              responsive:true, maintainAspectRatio:false,
+              plugins:{ legend:{ position:'right', labels:{font:{size:11},color:'#3a2810'} } },
+              scales:{
+                y:{ min:0, max:100, grid:{color:'#ede4d4'}, ticks:{font:{size:10},color:'#6a5a40'} },
+                x:{ grid:{display:false}, ticks:{font:{size:11},color:'#4a3820'} }
+              }
+            }
+          });
+        } catch(e){ console.error(e); }
+      }
+
+      // ── Visualisasi ───────────────────────────────────────────
+      let visualLoaded=false;
+      async function loadVisual() {
+        if (visualLoaded) return; visualLoaded=true;
+        const pos = {{ stats.get('positif',0) }};
+        const neg = {{ stats.get('negatif',0) }};
+        const net = {{ stats.get('netral',0)  }};
+
+        // Pie
+        new Chart(document.getElementById('chart-pie').getContext('2d'),{
+          type:'doughnut',
+          data:{
+            labels:['Positif','Negatif','Netral'],
+            datasets:[{ data:[pos,neg,net],
+              backgroundColor:['#4a7a2a','#8a2020','#8a6010'],
+              borderColor:'#ffffff', borderWidth:3 }]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+              legend:{position:'bottom', labels:{font:{size:11},color:'#3a2810'}},
+              tooltip:{callbacks:{label:function(c){return c.label+': '+c.parsed.toLocaleString()+' ulasan';}}}
+            }
+          }
+        });
+
+        // Kategori stacked
+        try {
+          const r = await fetch('/api/distribusi_kategori');
+          const d = await r.json();
+          const kats = Object.keys(d);
+          new Chart(document.getElementById('chart-kat').getContext('2d'),{
+            type:'bar',
+            data:{
+              labels:kats,
+              datasets:[
+                {label:'Positif',data:kats.map(k=>d[k].positif),backgroundColor:'#4a7a2a'},
+                {label:'Negatif',data:kats.map(k=>d[k].negatif),backgroundColor:'#8a2020'},
+                {label:'Netral', data:kats.map(k=>d[k].netral), backgroundColor:'#8a6010'},
+              ]
+            },
+            options:{
+              responsive:true, maintainAspectRatio:false,
+              scales:{
+                x:{stacked:true, grid:{display:false}, ticks:{font:{size:8},color:'#6a5a40'}},
+                y:{stacked:true, grid:{color:'#ede4d4'}, ticks:{font:{size:9},color:'#6a5a40'}}
+              },
+              plugins:{legend:{position:'top',labels:{font:{size:11},color:'#3a2810'}}}
+            }
+          });
+
+          // Jumlah per kategori (bar horizontal)
+          const sortedKats = [...kats].sort((a,b)=>d[b].total-d[a].total);
+          new Chart(document.getElementById('chart-jml-kat').getContext('2d'),{
+            type:'bar',
+            data:{
+              labels:sortedKats,
+              datasets:[{
+                label:'Jumlah Ulasan',
+                data:sortedKats.map(k=>d[k].total),
+                backgroundColor:'#8c6020',
+                borderRadius:3
+              }]
+            },
+            options:{
+              indexAxis:'y',
+              responsive:true, maintainAspectRatio:false,
+              plugins:{legend:{display:false}},
+              scales:{
+                x:{grid:{color:'#ede4d4'},ticks:{font:{size:10},color:'#6a5a40'}},
+                y:{grid:{display:false},ticks:{font:{size:10},color:'#4a3820'}}
+              }
+            }
+          });
+        } catch(e){ console.error(e); }
+
+        // Time-series
+        try {
+          const r = await fetch('/api/timeseries');
+          const d = await r.json();
+          if (Array.isArray(d) && d.length) {
+            new Chart(document.getElementById('chart-ts').getContext('2d'),{
+              type:'line',
+              data:{
+                labels:d.map(x=>x.bulan),
+                datasets:[
+                  {label:'Positif',data:d.map(x=>x.positif||0),borderColor:'#4a7a2a',backgroundColor:'#4a7a2a18',fill:true,tension:0.35,borderWidth:2,pointRadius:3},
+                  {label:'Negatif',data:d.map(x=>x.negatif||0),borderColor:'#8a2020',backgroundColor:'#8a202018',fill:true,tension:0.35,borderWidth:2,pointRadius:3},
+                  {label:'Netral', data:d.map(x=>x.netral ||0),borderColor:'#8a6010',backgroundColor:'#8a601018',fill:true,tension:0.35,borderWidth:2,pointRadius:3},
+                ]
+              },
+              options:{
+                responsive:true, maintainAspectRatio:false,
+                plugins:{legend:{position:'top',labels:{font:{size:11},color:'#3a2810'}}},
+                scales:{
+                  x:{grid:{color:'#ede4d4'},ticks:{font:{size:9},color:'#6a5a40',maxRotation:45}},
+                  y:{grid:{color:'#ede4d4'},ticks:{font:{size:10},color:'#6a5a40'}}
+                }
+              }
+            });
+          }
+        } catch(e){ console.error(e); }
+      }
+
+      // ── Processing Time ───────────────────────────────────────
+      let waktuLoaded=false;
+      async function loadWaktu() {
+        if (waktuLoaded) return; waktuLoaded=true;
+        try {
+          const r = await fetch('/api/processing_time');
+          const d = await r.json();
+          const metode = Object.keys(d);
+          const vals   = metode.map(m=>d[m]);
+
+          new Chart(document.getElementById('chart-waktu').getContext('2d'),{
+            type:'bar',
+            data:{
+              labels:metode.map(m=>m.replace('_',' ')),
+              datasets:[{ label:'Waktu (detik)', data:vals,
+                backgroundColor:CLR_ARR.slice(0,metode.length),
+                borderRadius:3 }]
+            },
+            options:{
+              indexAxis:'y',
+              responsive:true, maintainAspectRatio:false,
+              plugins:{legend:{display:false}},
+              scales:{
+                x:{grid:{color:'#ede4d4'},ticks:{font:{size:10},color:'#6a5a40'},
+                   title:{display:true,text:'Detik (s)',color:'#6a5a40',font:{size:11}}},
+                y:{grid:{display:false},ticks:{font:{size:11},color:'#4a3820'}}
+              }
+            }
+          });
+
+          const kat = t => t<1?'Sangat Cepat':t<10?'Cepat':t<60?'Sedang':'Lambat';
+          const rows = metode.map((m,i)=>
+            '<tr>'+
+            '<td style="font-weight:700;color:'+(CLR_ARR[i]||'#4a3820')+'">'+m.replace('_',' ')+'</td>'+
+            '<td class="num">'+d[m]+'</td>'+
+            '<td>'+kat(d[m])+'</td>'+
+            '<td style="font-size:11px;color:#8a7a60;">'+(KET[m]||'-')+'</td>'+
+            '</tr>'
+          ).join('');
+          document.getElementById('tbody-waktu').innerHTML = rows;
+        } catch(e){ console.error(e); }
+      }
+
+      // ── Data Sampel ───────────────────────────────────────────
+      async function loadData() {
+        try {
+          const r = await fetch('/api/sampel');
+          const d = await r.json();
+          const rows = d.map((x,i)=>
+            '<tr>'+
+            '<td>'+( i+1)+'</td>'+
+            '<td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+x.nama_produk+'</td>'+
+            '<td>'+x.kategori+'</td>'+
+            '<td class="num">'+x.rating+'</td>'+
+            '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+x.ulasan+'</td>'+
+            '<td>'+badge(x.sentimen)+'</td>'+
+            '<td style="font-size:11px;color:#8a7a60;">'+x.tanggal+'</td>'+
+            '</tr>'
+          ).join('');
+          document.getElementById('tbody-data').innerHTML = rows;
+        } catch(e){ console.error(e); }
+      }
+    </script>
+  </body>
+</html>

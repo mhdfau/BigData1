@@ -1,7 +1,6 @@
 # ============================================================
 # REQUIREMENTS — Big Data Topik 3
 # Sentiment Analysis Ulasan Produk Tokopedia
-# Nama : Avalent Divasea | NIM : 243016019
 # ============================================================
 
 # Web Framework
